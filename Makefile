@@ -1,20 +1,17 @@
-# This file is part of censusgeocode.
-# https://github.com/fitnr/censusgeocode
+default: test
 
-# Licensed under the General Public License (version 3)
-# http://opensource.org/licenses/LGPL-3.0
-# Copyright (c) 2015-9, Neil Freeman <contact@fakeisthenewreal.org>
+test: env
+	.env/bin/pytest tests
 
-.PHONY: install build upload clean deploy test
+.PHONY: doc
+doc: env
+	.env/bin/sphinx-build -a -W -E doc build/sphinx/html
 
-install: ; pip install .
 
-test: ; python -m unittest tests/test_*.py
+env: .env/.up-to-date
 
-deploy: build
-	twine upload dist/*
+.env/.up-to-date: pyproject.toml Makefile
+	python3 -m venv .env
+	.env/bin/pip install -e .[testing,doc]
+	touch $@
 
-build: | clean
-	python -m build
-
-clean:; rm -rf dist build
