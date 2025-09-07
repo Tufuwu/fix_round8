@@ -1,5 +1,9 @@
-include *.md
-include *.rst
-include *.txt
+include AUTHORS
 include LICENSE
-recursive-include tests *
+include README.md
+include requirements*.txt
+include stor/default.cfg
+include stor/default.env
+include stor/stor-completion.bash
+prune stor/tests
+exclude Makefile

@@ -1,17 +1,27 @@
-# vim swap files
-*.swp
+*.py[co]
+.project
+.pydevproject
+*~
+*.db
+*.orig
+*.DS_Store
+.tox
+*.egg/*
+.eggs/
+*.egg-info/*
+build/*
+docs/_build/*
+dist/*
 
-# python bytecode files
-*.pyc
-__pycache__/
+*.log
+nosetests*.xml
 
-# setuptools files
-*.egg-info/
-
-# testing files
-.tox/
 .coverage
+coverage.xml
+coverage
 
-# files generated for release
-dist/
-README.rst
+test.db
+.venv
+
+*.sublime-workspace
+.python-version
