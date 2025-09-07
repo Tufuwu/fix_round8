@@ -1,1 +1,10 @@
-requests
+setuptools
+chardet
+pytz
+python-dateutil
+python-gnupg
+feedparser
+sqlalchemy
+PySocks
+mock
+cryptography

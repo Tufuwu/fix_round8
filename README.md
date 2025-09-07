@@ -1,328 +1,71 @@
-[![Build Status](https://travis-ci.org/peshay/btcde.svg?branch=master)](https://travis-ci.org/peshay/btcde)
-[![Codecov](https://codecov.io/gh/peshay/btcde/branch/master/graph/badge.svg)](https://codecov.io/gh/peshay/btcde/branch/master)
-[![Scrutinizer](https://scrutinizer-ci.com/g/peshay/btcde/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/peshay/btcde/?branch=master)
-[![Python version](https://img.shields.io/pypi/pyversions/btcde.svg)](https://pypi.python.org/pypi/btcde)
-[![license](https://img.shields.io/github/license/peshay/btcde.svg)](https://github.com/peshay/btcde/blob/master/LICENSE)
-[![Beerpay](https://beerpay.io/peshay/btcde/badge.svg?style=beer)](https://beerpay.io/peshay/btcde)
+Limnoria is a multipurpose Python IRC bot, designed for flexibility and robustness,
+while being easy to install, set up, and maintain.
 
-# btcde.py
+It aims to be an adequate replacement for most existing IRC bots.
+It includes a very flexible and powerful
+[ACL system](https://docs.limnoria.net/use/capabilities.html)
+for controlling access to commands,
+an equality powerful
+[configuration system](https://docs.limnoria.net/use/configuration.html)
+to customize your bot,
+as well as more than 60 builtin [plugins](https://limnoria.net/plugins.xhtml)
+providing around 400 actual commands.
 
-API Wrapper for [Bitcoin.de Trading API](https://www.bitcoin.de/de/api/tapi/doc)
+There are also dozens of third-party [plugins](https://limnoria.net/plugins.xhtml)
+written by dozens of independent developers,
+and it is very easy to
+[write your own](https://docs.limnoria.net/develop/plugin_tutorial.html)
+with only basic knowledge of Python.
 
-Requires: requests
+It is the successor of
+[Supybot](https://sourceforge.net/projects/supybot/)
+since 2010 and provides many new features, but keeps full compatibility
+with existing configurations and plugins.
 
-## Install btcde.py
+# Build status
 
-You can install the btcde module via pip
+Master branch: [![Build Status (master branch)](https://travis-ci.org/ProgVal/Limnoria.png?branch=master)](https://travis-ci.org/ProgVal/Limnoria)
 
-```bash
-pip install btcde
+Testing branch: [![Build Status (testing branch)](https://travis-ci.org/ProgVal/Limnoria.png?branch=testing)](https://travis-ci.org/ProgVal/Limnoria)
+
+Limnoria supports CPython 3.4 to 3.9, CPython nightly, and Pypy 3.
+
+# Support
+
+## Documentation
+
+If this is your first install, there is an [install guide](https://docs.limnoria.net/en/latest/use/install.html).
+You will probably be pointed to it if you ask on IRC how to install
+Limnoria.
+TL;DR version:
+
+```
+sudo apt-get install python3 python3-pip python3-wheel
+pip3 install --user limnoria
+# You might need to add $HOME/.local/bin to your PATH
+supybot-wizard
 ```
 
-## How to Use
+There is extensive documentation at [docs.limnoria.net] and at
+[Gribble wiki]. We took the time to write it; you should take the time to
+read it.
 
-This is an example how you can use it in a python script
+[docs.limnoria.net]:https://docs.limnoria.net/
+[Gribble wiki]:https://sourceforge.net/p/gribble/wiki/Main_Page/
 
-```python
-#! /usr/bin/env python
-import btcde
-# create a object for the connection settings
-api_key = <YourAPIKey>
-api_secret = <YourAPISecret>
-conn = btcde.Connection(api_key, api_secret)
-orderbook = conn.showOrderbook('buy', 'btceur')
-print(f'API Credits Left: {orderbook["credits"]}')
-orders = orderbook['orders']
-for order in orders:
-    print(f'Order ID: {order["order_id"]} \tPrice: {order["price"]} EUR')
-```
+## IRC channels
 
----
+### In English
 
-## API Methods
+If you have any trouble, feel free to swing by [#limnoria](ircs://irc.libera.chat:6697/#limnoria) on
+[Libera.Chat](https://libera.chat/) and ask questions.  We'll be happy to help
+wherever we can.  And by all means, if you find anything hard to
+understand or think you know of a better way to do something,
+*please* post it on the [issue tracker] so we can improve the bot!
 
-For more Details on the API Methods, please read [bitcoin.de API Documentation](https://www.bitcoin.de/de/api/tapi/doc)
+[issue tracker]:https://github.com/ProgVal/Limnoria/issues
 
-All mandatory parameters have to be passed to a function, all optional are resolved via ```**args```
+### In Other languages
 
-Following Methodds are not yet implemented. If you like to get those implemented as well, please [join the development project for version 4.1](https://github.com/peshay/btcde/projects/5)
+Only in French at the moment, located at [#limnoria-fr on Libera.Chat](ircs://irc.libera.chat:6697/#libera-fr).
 
-* Functions for Withdrawal
-* Functions for Deposit
-* Crypto-to-Crypto trades
-* Websocket-API
-
-### Addresspool
-
-#### addToAddressPool(currency, address, **args)
-
-* Required Parameters:
-  * currency
-  * address
-* Optional Parameters:
-  * amount_usages
-  * comment
-
-*API Credits Cost:* 2
-
-#### removeFromAddressPool(currency, address)
-
-* Required Parameters:
-  * currency
-  * address
-
-*API Credits Cost:* 2
-
-#### listAddressPool(currency)
-
-* Required Parameters:
-  * currency
-  * address
-* Optional Parameters:
-  * usable
-  * comment
-  * page
-
-*API Credits Cost:* 2
-
-### Orders
-
-#### showOrderbook(OrderType, trading_pair, **args)
-
-* Required Parameters:
-  * type
-  * trading_pair
-* Optional Parameters:
-  * amount_currency_to_trade
-  * price
-  * order_requirements_fullfilled
-  * only_kyc_full
-  * only_express_orders
-  * payment_option
-  * sepa_option
-  * only_same_bankgroup
-  * only_same_bic
-  * seat_of_bank
-  * page_size
-
-*API Credits Cost:* 2
-
-#### showOrderDetails(trading_pair, order_id, **args)
-
-* Required Parameters:
-  * trading_pair
-  * order_id
-
-*API Credits Cost:* 2
-
-#### createOrder(OrderType, trading_pair, max_amount_currency_to_trade, price, **args)
-
-* Required Parameters:
-  * type
-  * trading_pair
-  * max_amount_currency_to_trade
-  * price
-* Optional Parameters:
-  * min_amount_currency_to_trade
-  * end_datetime
-  * new_order_for_remaining_amount
-  * min_trust_level
-  * only_kyc_full
-  * payment_option
-  * sepa_option
-  * seat_of_bank
-
-*API Credits Cost:* 1
-
-#### deleteOrder(order_id, trading_pair)
-
-* Required Parameters:
-  * order_id
-  * trading_pair
-
-*API Credits Cost:* 2
-
-#### showMyOrders(**args)
-
-* Optional Parameters:
-  * type
-  * trading_pair
-  * state
-  * date_start
-  * date_end
-  * page
-
-*API Credits Cost:* 2
-
-#### showMyOrderDetails(trading_pair, order_id)
-
-* Required Parameters:
-  * trading_pair
-  * order_id
-
-*API Credits Cost:* 2
-
-### Trades
-
-#### executeTrade(order_id, OrderType, trading_pair, amount)
-
-* Required Parameters:
-  * order_id
-  * type
-  * trading_pair
-  * amount_currency_to_trade
-* Optional Parameters:
-  * payment_option
-
-*API Credits Cost:* 1
-
-#### showMyTrades(**args)
-
-* Optional Parameters:
-  * type
-  * trading_pair
-  * state
-  * only_trades_with_action_for_payment_or_transfer_required
-  * payment_method
-  * date_start
-  * date_end
-  * page
-
-*API Credits Cost:* 3
-
-#### showMyTradeDetails(trading_pair, trade_id)
-
-* Required Parameters:
-  * trade_id
-  * trading_pair
-
-*API Credits Cost:* 3
-
-### miscellaneous
-
-#### markCoinsAsTransferred(trading_pair, trade_id, amount_currency_to_trade_after_fee)
-
-* Required Parameters:
-  * trading_pair
-  * trade_id
-  * amount_currency_to_trade_after_fee
-
-*API Credits Cost:* 1
-
-#### markTradeAsPaid(trading_pair, trade_id, volume_currency_to_pay_after_fee)
-
-* Required Parameters:
-  * trading_pair
-  * trade_id
-  * volume_currency_to_pay_after_fee
-
-*API Credits Cost:* 1
-
-#### markCoinsAsReceived(trading_pair, trade_id, amount_currency_to_trade_after_fee, rating)
-
-* Required Parameters:
-  * trading_pair
-  * trade_id
-  * amount_currency_to_trade_after_fee
-  * rating
-
-*API Credits Cost:* 1
-
-#### markTradeAsPaymentReceived(trading_pair, trade_id, volume_currency_to_pay_after_fee, rating, is_paid_from_correct_bank_account)
-
-* Required Parameters:
-  * trading_pair
-  * trade_id
-  * volume_currency_to_pay_after_fee
-  * rating
-  * is_paid_from_correct_bank_account
-
-*API Credits Cost:* 1
-
-#### addTradeRating(trading_pair, trade_id, rating)
-
-* Required Parameters:
-  * trading_pair
-  * trade_id
-  * rating
-
-*API Credits Cost:* 1
-
-#### showAccountInfo()
-
-*API Credits Cost:* 2
-
-#### showOrderbookCompact(trading_pair)
-
-* Required Parameters:
-  * trading_pair
-
-*API Credits Cost:* 3
-
-#### showPublicTradeHistory(trading_pair, **args)
-
-* Required Parameters:
-  * trading_pair
-* Optional Parameters:
-  * since_tid
-
-*API Credits Cost:* 3
-
-#### showRates(trading_pair)
-
-* Required Parameters:
-  * trading_pair
-
-*API Credits Cost:* 3
-
-#### showAccountLedger(currency, **args)
-
-* Required Parameters:
-  * currency
-* Optional Parameters:
-  * type
-  * datetime_start
-  * datetime_end
-  * page
-
-*API Credits Cost:* 3
-
-#### showPermissions()
-
-*API Credits Cost:* 2
-
-### Deposit
-
-#### requestDepositAddress
-
-Not yet implemented!
-
-#### showDeposit
-
-Not yet implemented!
-
-#### showDeposits
-
-Not yet implemented!
-
-### Withdrawal
-
-#### createWithdrawal
-
-Not yet implemented!
-
-### deleteWithdrawal
-
-Not yet implemented!
-
-#### showWithdrawal
-
-Not yet implemented!
-
-#### showWithdrawalMinNetworkFee
-
-Not yet implemented!
-
-#### showWithdrawals
-
-Not yet implemented!
