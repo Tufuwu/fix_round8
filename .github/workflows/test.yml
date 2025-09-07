@@ -9,12 +9,11 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
-
+  test:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [3.8, 3.9, 3.10]
 
     steps:
     - uses: actions/checkout@v2
@@ -23,16 +22,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pyusb coverage coveralls pyserial PyYAML tqdm
-    - name: Fix YAML Loader Error
-      run: |
-        sed -i 's/yaml.load(/yaml.safe_load(/g' $(find . -name "*.py")
-        sed -i 's/safe_load(/safe_load(/g' $(find . -name "*.py")
-    - name: Build
-      run: python setup.py build
-    - name: Test with coverage
-      run: coverage run --source=stcgal -m unittest discover
-    - name: Coveralls
-      run: coveralls
+      run: pip install tox
+    - name: Run tests
+      run: tox
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
