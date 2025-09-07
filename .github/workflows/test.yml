@@ -1,4 +1,4 @@
-name: Django CI
+name: CI
 
 on:
   push:
@@ -9,12 +9,20 @@ on:
       - main
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: [3.8]
-        django-version: [1.11]
+        python-version: [3.8, 3.9, 3.10]
+        include:
+          - python-version: 3.9
+            package: mock
+            name: mock RPM in Copr
+            if: github.event_name == 'pull_request'
+          - python-version: 3.9
+            package: mock-core-configs
+            name: mock-core-configs RPM in Copr
+            if: github.event_name == 'pull_request'
 
     steps:
     - uses: actions/checkout@v2
@@ -26,25 +34,13 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install Django==${{ matrix.django-version }}
-        pip install -e .[flake8,tests]
+        pip install -r mock/requirements.txt
+        pip install pytest-cov
 
-    - name: Set up Django test settings
+    - name: Run tests
       run: |
-        echo "DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}}" > test_settings.py
-        echo "INSTALLED_APPS = ['django.contrib.contenttypes', 'django.contrib.auth'," >> test_settings.py
-        echo "    'django.contrib.staticfiles']" >> test_settings.py
-        echo "STATIC_URL = '/static/'" >> test_settings.py
-
-    - name: Lint with flake8
-      run: |
-        flake8 .
-
-    - name: Test with pytest
-      env:
-        DJANGO_SETTINGS_MODULE: test_settings
-        PYTHONPATH: ${{ github.workspace }}
-      run: |
-        pytest --ds=test_settings
-      working-directory: .
+        if [ -n "${{ matrix.package }}" ]; then
+          PACKAGE=${{ matrix.package }} .travis/copr-build
+        else
+          PYTHON=python${{ matrix.python-version }} ./mock/run-tests.sh
+        fi
