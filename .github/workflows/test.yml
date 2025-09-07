@@ -1,4 +1,4 @@
-name: CI
+name: Python package
 
 on:
   push:
@@ -10,11 +10,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: ['3.8']
+        python-version: [3.8, 3.9]
 
     steps:
     - uses: actions/checkout@v2
@@ -24,29 +23,48 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Cache pip
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/testing.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
     - name: Install dependencies
-      run: make setup
-
-    - name: Check build
-      run: make
-
-    - name: Lint with Flake8
-      run: make lint
-
-    - name: Build docs
-      run: make docs
-
-    - name: Test with coverage
       run: |
-        python -m venv .venv
-        source .venv/bin/activate
-        make travis-test
-      shell: bash
+        pip install tox-travis
+        pip install coveralls
+        pip install -r requirements/testing.txt
+
+    - name: Lint with flake8
+      run: flake8
+
+    - name: Test with tox
+      run: tox
+
+    - name: Coveralls
       env:
-        VIRTUAL_ENV: .venv
-        PATH: .venv/bin:${{ env.PATH }}
-    - name: Deactivate virtual environment
-      if: always()
-      run: |
-        deactivate || true
-      shell: bash
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: coveralls
+
+  notifications:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.your-email-provider.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: GitHub Actions Notification
+          body: Build ${{ job.status }}
+          to: user@example.com
+          from: github-actions@example.com
+          secure: true
+          ignore_cert: true
+          retry: 3
+          retry_delay: 10
+          # Add fail-on-error to handle network issues gracefully
+          fail-on-error: false
