@@ -1,72 +1,86 @@
-schedule
-========
+=============================
+drf-tus
+=============================
 
+.. image:: https://badge.fury.io/py/drf-tus.svg
+    :target: https://badge.fury.io/py/drf-tus
 
-.. image:: https://github.com/dbader/schedule/workflows/Tests/badge.svg
-        :target: https://github.com/dbader/schedule/actions?query=workflow%3ATests+branch%3Amaster
+.. image:: https://github.com/dirkmoors/drf-tus/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/dirkmoors/drf-tus/actions
 
-.. image:: https://coveralls.io/repos/dbader/schedule/badge.svg?branch=master
-        :target: https://coveralls.io/r/dbader/schedule
-
-.. image:: https://img.shields.io/pypi/v/schedule.svg
-        :target: https://pypi.python.org/pypi/schedule
-
-Python job scheduling for humans.
-
-An in-process scheduler for periodic jobs that uses the builder pattern
-for configuration. Schedule lets you run Python functions (or any other
-callable) periodically at pre-determined intervals using a simple,
-human-friendly syntax.
-
-Inspired by `Adam Wiggins' <https://github.com/adamwiggins>`_ article `"Rethinking Cron" <https://adam.herokuapp.com/past/2010/4/13/rethinking_cron/>`_ and the `clockwork <https://github.com/Rykian/clockwork>`_ Ruby module.
-
-Features
---------
-- A simple to use API for scheduling jobs.
-- Very lightweight and no external dependencies.
-- Excellent test coverage.
-- Tested on Python 2.7, 3.5, and 3.6
-
-Usage
------
-
-.. code-block:: bash
-
-    $ pip install schedule
-
-.. code-block:: python
-
-    import schedule
-    import time
-
-    def job():
-        print("I'm working...")
-
-    schedule.every(10).minutes.do(job)
-    schedule.every().hour.do(job)
-    schedule.every().day.at("10:30").do(job)
-    schedule.every(5).to(10).minutes.do(job)
-    schedule.every().monday.do(job)
-    schedule.every().wednesday.at("13:15").do(job)
-    schedule.every().minute.at(":17").do(job)
-
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+A Tus (tus.io) library for Django Rest Framework
 
 Documentation
 -------------
 
-Schedule's documentation lives at `schedule.readthedocs.io <https://schedule.readthedocs.io/>`_.
+The full documentation is at https://drf-tus.readthedocs.io.
 
-Please also check the FAQ there with common questions.
+Quickstart
+----------
 
+Install drf-tus::
 
-Meta
-----
+    pip install drf-tus
 
-Daniel Bader - `@dbader_org <https://twitter.com/dbader_org>`_ - mail@dbader.org
+Add it to your `INSTALLED_APPS`:
 
-Distributed under the MIT license. See `LICENSE.txt <https://github.com/dbader/schedule/blob/master/LICENSE.txt>`_ for more information.
+.. code-block:: python
 
-https://github.com/dbader/schedule
+    INSTALLED_APPS = (
+        ...
+        "rest_framework_tus",
+        ...
+    )
+
+Add the middleware to `MIDDLEWARE`:
+
+.. code-block:: python
+
+    MIDDLEWARE = (
+        ...
+        "rest_framework_tus.middleware.TusMiddleware",
+        ...
+    )
+
+Add URL patterns for drf-tus:
+
+.. code-block:: python
+
+    urlpatterns = [
+        ...
+        path(r"^", include("rest_framework_tus.urls", namespace="rest_framework_tus")),
+        ...
+    ]
+
+Features
+--------
+
+This library implements the following TUS API v1.0.0 protocols:
+
+* Core Protocol (http://tus.io/protocols/resumable-upload.html#core-protocol)
+* Creation Protocol (http://tus.io/protocols/resumable-upload.html#creation)
+* Expiration Protocol (http://tus.io/protocols/resumable-upload.html#expiration)
+* Checksum Protocol (http://tus.io/protocols/resumable-upload.html#checksum)
+* Termination Protocol (http://tus.io/protocols/resumable-upload.html#termination)
+
+Running Tests
+-------------
+
+Does the code actually work?
+
+::
+
+    source <YOURVIRTUALENV>/bin/activate
+    (myenv) $ pip install tox
+    (myenv) $ tox
+
+Credits
+-------
+
+Tools used in rendering this package:
+
+*  Cookiecutter_
+*  `cookiecutter-djangopackage`_
+
+.. _Cookiecutter: https://github.com/audreyr/cookiecutter
+.. _`cookiecutter-djangopackage`: https://github.com/pydanny/cookiecutter-djangopackage

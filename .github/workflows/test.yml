@@ -1,4 +1,4 @@
-name: Python package
+name: Django CI
 
 on:
   push:
@@ -9,50 +9,40 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
+  test:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version:
-          - "3.8"
-          - "3.9"
-
+        python-version: [3.8]
+        django-version: [1.8.19, 1.9.13, 1.10.8, 1.11.29]  # Use the latest patch versions for each minor version
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install tox-travis coveralls sphinx
-    - name: Run tests
-      run: tox
-    - name: Build documentation
-      run: |
-        sphinx-build -b html docs/source docs/build || true
-    - name: Upload coverage to Coveralls
-      if: success()
-      run: coveralls
-  docs:
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        python-version:
-          - "3.8"
-          - "3.9"
+      - uses: actions/checkout@v2
 
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install sphinx
-    - name: Build documentation
-      run: |
-        sphinx-build -b html docs/source docs/build
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install tox
+
+      - name: Create tox environment
+        run: |
+          echo "[tox]" > tox.ini
+          echo "envlist = py${{ matrix.python-version }}-django-${{ matrix.django-version }}" >> tox.ini
+          echo "[testenv]" >> tox.ini
+          echo "deps =" >> tox.ini
+          echo "    django==${{ matrix.django-version }}" >> tox.ini
+          echo "    pytest" >> tox.ini
+          echo "    pytest-django" >> tox.ini  # Add pytest-django to handle Django test cases
+          echo "setenv =" >> tox.ini
+          echo "    DJANGO_SETTINGS_MODULE = your_project_name.settings" >> tox.ini  # Ensure the correct settings module is set
+          echo "commands =" >> tox.ini
+          echo "    pytest" >> tox.ini
+
+      - name: Run tests
+        env:
+          TOXENV: py${{ matrix.python-version }}-django-${{ matrix.django-version }}
+        run: tox
