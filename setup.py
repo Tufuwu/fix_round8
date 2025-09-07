@@ -1,50 +1,69 @@
-#!/usr/bin/env python
-from itertools import chain
+#/usr/bin/env python
+
+import os
+import sys
 from setuptools import setup, find_packages
-from pyinaturalist import __version__
 
-# These package categories allow tox and build environments to install only what they need
-extras_require = {
-    # Packages used for CI jobs
-    "build": ["coveralls", "twine", "wheel"],
-    # Packages used for documentation builds
-    "docs": [
-        "m2r2",
-        "Sphinx~=3.2.1",
-        "sphinx-autodoc-typehints",
-        "sphinx-automodapi",
-        "sphinx-rtd-theme",
-        "sphinxcontrib-apidoc",
-    ],
-    # Packages used for testing both locally and in CI jobs
-    "test": [
-        "black==20.8b1",
-        "flake8",
-        "mypy",
-        "pytest>=5.0",
-        "pytest-cov",
-        "requests-mock>=1.7",
-        "tox>=3.15",
-    ],
-}
-# All development/testing packages combined
-extras_require["dev"] = list(chain.from_iterable(extras_require.values()))
+# if you are not using vagrant, just delete os.link directly,
+# The hard link only saves a little disk space, so you should not care
+if os.environ.get('USER', '') == 'vagrant':
+    del os.link
 
+
+ROOT_DIR = os.path.dirname(__file__)
+SOURCE_DIR = os.path.join(ROOT_DIR)
+
+if sys.version_info < (3, 6):
+    raise RuntimeError(
+        "opencage requires Python 3.7 or newer"
+        "Use older opencage 1.x for Python 2.7 or 3.6"
+    )
+
+# try for testing
+try:
+    with open(os.path.join(SOURCE_DIR, 'README.md'), encoding="utf-8") as f:
+        LONG_DESCRIPTION = f.read()
+except FileNotFoundError:
+    LONG_DESCRIPTION = ""
 
 setup(
-    name="pyinaturalist",
-    version=__version__,
-    author="Nicolas Noé",
-    author_email="nicolas@niconoe.eu",
-    url="https://github.com/niconoe/pyinaturalist",
+    name="opencage",
+    version="2.2.0",
+    description="Wrapper module for the OpenCage Geocoder API",
+    long_description=LONG_DESCRIPTION,
+    long_description_content_type='text/markdown',
+    author="OpenCage GmbH",
+    author_email="info@opencagedata.com",
+    url="https://github.com/OpenCageData/python-opencage-geocoder/",
+    download_url="https://github.com/OpenCageData/python-opencage-geocoder/tarball/2.1.0",
+    license="BSD",
     packages=find_packages(),
     include_package_data=True,
-    install_requires=[
-        "keyring~=21.4.0",
-        "python-dateutil>=2.0",
-        "python-forge",
-        "requests>=2.24.0",
-    ],
-    extras_require=extras_require,
     zip_safe=False,
+    keywords=['geocoding', 'geocoder'],
+    classifiers=[
+        'Environment :: Web Environment',
+        "Development Status :: 5 - Production/Stable",
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        "Programming Language :: Python :: 3 :: Only",
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Topic :: Scientific/Engineering :: GIS',
+        'Topic :: Utilities'
+    ],
+    install_requires=[
+        'Requests>=2.26.0',
+        'backoff>=1.10.0'
+    ],
+    test_suite='pytest',
+    tests_require=[
+        'httpretty>=0.9.6',
+        'pylint==2.15.9',
+        'pytest>=6.0'
+    ],
 )

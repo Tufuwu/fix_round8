@@ -1,58 +1,39 @@
-name: CI
+name: Python package
 
 on:
   push:
     branches:
       - main
-      - dev
-    tags:
-      - '*'
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: [3.8, 3.9]
-        toxenv: [coverage, mypy, style, docs, dist-test]
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v2
+
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: pip install ".[build]" tox
-    - name: Clean build directory
-      run: python setup.py clean --all
-    - name: Run tests
-      run: tox -e ${{ matrix.toxenv }}
-    - name: Upload coverage to Coveralls
-      if: ${{ matrix.toxenv == 'coverage' }}
-      run: |
-        pip install coveralls
-        coveralls
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: test
-    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/dev' || startsWith(github.ref, 'refs/tags/')) }}
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.8
     - name: Install dependencies
-      run: pip install ".[build]"
-    - name: Build package
-      run: python setup.py sdist bdist_wheel
-    - name: Publish to PyPI
+      run: pip install tox
+
+    - name: Run tests
+      run: tox
+
+    - name: Slack Notification
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
       env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-      run: |
-        if [[ ${{ github.ref }} == 'refs/heads/dev' ]]; then
-          twine upload --skip-existing dist/* --repository-url https://test.pypi.org/legacy/
-        else
-          twine upload --skip-existing dist/*
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        # Ensure that the secret SLACK_WEBHOOK_URL is set in the repository settings
