@@ -1,23 +1,12 @@
-FROM python:3.8
+FROM python:3.7-slim-buster
 
-ENV ETESYNC_DATA_DIR "/data"
-ENV ETESYNC_SERVER_HOSTS "0.0.0.0:37358,[::]:37358"
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends dexdump=8.1.0+r23-3 \
+ && rm -rf /var/lib/apt/lists/*
 
-# Make this file a build dep for the next steps
-COPY requirements.txt /app/
-RUN pip install -r /app/requirements.txt
+WORKDIR /
+COPY . .
 
-COPY . /app
-RUN pip install /app
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN set -ex ;\
-        useradd etesync ;\
-        mkdir -p /data ;\
-        chown -R etesync: /data
-
-VOLUME /data
-EXPOSE 37358
-
-USER etesync
-
-ENTRYPOINT ["etesync-dav"]
+ENTRYPOINT ["python", "exodus_analyze.py", "app.apk"]

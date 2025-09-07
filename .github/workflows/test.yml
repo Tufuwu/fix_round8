@@ -2,56 +2,34 @@ name: CI
 
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
+  flake8:
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: [3.8]
-    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-
+      - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller wheel
-          pip install -r requirements.txt
+        run: pip install flake8
+      - name: Run Flake8
+        run: flake8
 
-      - name: Run script
-        run: |
-          cd pyinstaller && ./bundle.sh
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: deploy
-          path: pyinstaller/deploy/
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
+  dockerfile_lint:
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
+      - uses: actions/checkout@v2
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v2
         with:
-          name: deploy
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: pyinstaller/deploy/*
-          draft: true
-          name: ${{ github.ref_name }} (DRAFT)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          dockerfile: Dockerfile
