@@ -1,78 +1,48 @@
 # Changelog
-All notable changes to this project will be documented in this file.
-
-The format of this changelog is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Changed
-- Use Model.__str__() for related fields. In 1.x the primary key was used for related fields.
 
-### Added
-- Test on Django 3.0, 3.1 & 3.2
-- Test on Python 3.9 (for Django versions with support).
+## [0.3.4] - 2020-07-15
+- Prevent crash when embedding in situations including the lldb debugger. Thanks Nathan Lanza!
 
-### Removed
-- Drop support for Python 2 and Python 3.4.
-- Drop support for Django 1.11.
+## [0.3.3] - 2020-07-06
+- Revert backslash removal, since this broke bpython in 0.3.2
 
-## [1.1.0]
-### Added
-- Add support for Django 3.0.
-- Test on Python 3.8 (for Django versions with support).
+## [0.3.2] - 2020-07-04
+- Migrate doc generation to Python 3
+- Add MyPy typing
+- Remove logging level message. Thanks Jack Rybarczyk!
+- Assorted fixes: Thanks Armira Nance, Etienne Richart, Evan Allgood, Nathan Lanza, and Vilhelm Prytz!
 
-## [1.0.1]
-### Added
-- Test on Django 2.2.
+## [0.3.1] - 2020-01-03
+- Add "dark" format function
+- Add Input option to disable terminal start/stop. Thanks George Kettleborough!
+- Fix Py3.6 compatibility. Thanks Po-Chuan Hsieh!
+- Assorted fixes, thanks Jakub Wilk and Manuel Mendez!
 
-### Fixed
-- Fixed bug with filename getting duplicate .csv extension.
+## [0.3.0] - 2018-02-13
+- Change name of "dark" color to "black"
+- Drop support for Python 2.6 and 3.3
+- New FmtStr method width_aware_splitlines which cuts up a FmtStr in linear time
 
-## [1.0.0]
-### Added
-- Add CHANGELOG.md to release.
+## [0.2.12] - 2018-02-12
+- Fix accidentally quadratic `width_aware_slice` behavior (fixes bpython #729)
+  This bug causes bpython to hang on large output. Thanks Ben Wiederhake!
+- Allow curtsies to be run on non-main threads (useful for bpython #555)
+  This should allow bpython to be run in a variety of situations like Django's runserver
+- Add function keys for some keyboard/terminal setups
 
-## [0.5.0]
-### Added
-- Test on Django 2.0 and 2.1.
-- Test with pypy and pypy3.5.
+## [0.2.11] - 2016-10-22
+- Handle unsupported SGR codes (fixes bpython #657)
+- Add Ctrl-Delete  for some keyboard/terminal setups
+- Many doc fixes. Thanks Dan Puttick!
 
-### Removed
-- Drop testing on Django < 1.11.
+## [0.2.10] - 2016-10-10
+- Add sequences for home and end (fixes Curtsies #78)
 
-## [0.4.0]
-### Fixed
-- Fixed bug with numeric choice fields with 0 values.
-
-## [0.3.0]
-### Added
-- More documentation in the README.
-- More tests.
-- Check that `get_context_data(self, **kwargs)` is not being overridden.
-
-### Fixed
-- Fixed issue with unicode csv data on Python 2.
-
-### Removed
-- Drop support for Python 3.3.
-
-## [0.2.0] - 2017-08-07
-### Added
-- Allow `get_fields(self, queryset)` to be overridden.
-
-### Fixed
-- Fixed issue with blank value in choice field.
-
-## [0.1.0] - 2017-08-01
-### Added
-- Initial version.
-
-[Unreleased]: https://github.com/benkonrath/django-csv-export-view/compare/1.1.0...HEAD
-[1.1.0]: https://github.com/benkonrath/django-csv-export-view/compare/1.0.1...1.1.0
-[1.0.1]: https://github.com/benkonrath/django-csv-export-view/compare/1.0.0...1.0.1
-[1.0.0]: https://github.com/benkonrath/django-csv-export-view/compare/0.5.0...1.0.0
-[0.5.0]: https://github.com/benkonrath/django-csv-export-view/compare/0.4.0...0.5.0
-[0.4.0]: https://github.com/benkonrath/django-csv-export-view/compare/0.3.0...0.4.0
-[0.3.0]: https://github.com/benkonrath/django-csv-export-view/compare/0.2.0...0.3.0
-[0.2.0]: https://github.com/benkonrath/django-csv-export-view/compare/0.1.0...0.2.0
-[0.1.0]: https://github.com/benkonrath/django-csv-export-view/compare/4a8792dbaf97c7fdb5de77dbc9fc0c28c5c54eab...0.1.0
+## [0.2.9] - 2016-09-07
+- Fix #90 again
+- Strip ansi escape sequences if parsing fmtstr input fails
+- Prevent invalid negative cursor positions in CursorAwareWindow (fixes bpython #607)
+- '\x1bOA' changed from ctrl-arrow key to arrow key (fixes bpython #621)
+- Alternate codes for F1-F4 (fixes bpython #626)

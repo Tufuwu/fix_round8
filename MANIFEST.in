@@ -1,2 +1,4 @@
 include LICENSE
-include README.md
+include tests/*.py
+include examples/*.py
+include readme.md

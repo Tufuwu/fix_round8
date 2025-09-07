@@ -1,156 +1,91 @@
-# django-csv-export-view
+[![Documentation Status](https://readthedocs.org/projects/curtsies/badge/?version=latest)](https://readthedocs.org/projects/curtsies/?badge=latest)
+![Curtsies Logo](http://ballingt.com/assets/curtsiestitle.png)
 
-A Django class-based view for CSV export.
+Curtsies is a Python 3.6+ compatible library for interacting with the terminal.
+This is what using (nearly every feature of) curtsies looks like:
 
-[![Build Status](https://travis-ci.org/benkonrath/django-csv-export-view.svg?branch=master)](https://travis-ci.org/benkonrath/django-csv-export-view)
-
-## Features
-
-* Easy CSV exports by setting a Django `model` and a `fields` or `exclude` iterable
-* Works with existing class-based view mixins for access control
-* Generates Microsoft Excel friendly CSV by default
-* Proper HTTP headers set for CSV
-* Easy to override defaults as needed
-* Easy integration into Django Admin
-
-## Installation
-
-`pip install django-csv-export-view`
-
-## Quick Start
-
-Examples:
 ```python
-from csv_export.views import CSVExportView
+import random
+import sys
 
-class DataExportView(CSVExportView):
-    model = Data
-    fields = ("field", "related", "property")
+from curtsies import FullscreenWindow, Input, FSArray
+from curtsies.fmtfuncs import red, bold, green, on_blue, yellow
 
-    # When using related fields you will likely want to override get_queryset() use select_related() or prefetch_related().
-    def get_queryset(self):
-        return super().get_queryset().select_related("related")
-        OR
-        return super().get_queryset().prefetch_related("related")
+print(yellow('this prints normally, not to the alternate screen'))
 
-class DataExportView(CSVExportView):
-    model = Data
-    fields = ("field", "related__field", "property")
-
-class DataExportView(CSVExportView):
-    model = Data
-    fields = "__all__"
-
-class DataExportView(CSVExportView):
-    model = Data
-    exclude = ("id",)
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.exclude(deleted=True)
-
-class DataExportView(CSVExportView):
-    model = Data
-
-    def get_fields(self, queryset):
-        fields = ["username", "email"]
-        if self.request.user.is_superuser:
-            fields.append("birth_date")
-        return fields
+with FullscreenWindow() as window:
+    a = FSArray(window.height, window.width)
+    msg = red(on_blue(bold('Press escape to exit, space to clear.')))
+    a[0:1, 0:msg.width] = [msg]
+    window.render_to_terminal(a)
+    with Input() as input_generator:
+        for c in input_generator:
+            if c == '<ESC>':
+                break
+            elif c == '<SPACE>':
+                a = FSArray(window.height, window.width)
+            else:
+                s = repr(c)
+                row = random.choice(range(window.height))
+                column = random.choice(range(window.width-len(s)))
+                color = random.choice([red, green, on_blue, yellow])
+                a[row, column:column+len(s)] = [color(s)]
+            window.render_to_terminal(a)
 ```
 
-`fields` / `exclude`: An iterable of field names and properties. You cannot set both `fields` and `exclude`.
-`fields` can also be `"__all__"` to export all fields. Model properties are not included when `"__all__"` is used.
-Related field can be used with `__`. Override `get_fields(self, queryset)` for custom behaviour not supported by the
-default logic.
+Paste it in a `something.py` file and try it out!
 
-`model`: The model to use for the CSV export queryset. Override `get_queryset()` if you need a custom queryset.
+Installation: `pip install curtsies`
 
-## Further Customization
+[Documentation](http://curtsies.readthedocs.org/en/latest/)
 
-Examples:
-```python
-from csv_export.views import CSVExportView
+Primer
+------
 
-class DataExportView(CSVExportView):
-    model = Data
-    fields = "__all__"
-    header = False
-    specify_separator = False
-    filename = "data-export.csv"
+[FmtStr](http://curtsies.readthedocs.org/en/latest/FmtStr.html) objects are strings formatted with
+colors and styles displayable in a terminal with [ANSI escape sequences](http://en.wikipedia.org/wiki/ANSI_escape_code>`_).
 
-class DataExportView(CSVExportView):
-    model = Data
-    fields = "__all__"
-    verbose_names = False
+![](https://i.imgur.com/bRLI134.png)
 
-class DataExportView(CSVExportView):
-    model = Data
-    fields = "__all__"
+[FSArray](http://curtsies.readthedocs.org/en/latest/FSArray.html) objects contain multiple such strings
+with each formatted string on its own row, and FSArray
+objects can be superimposed on each other
+to build complex grids of colored and styled characters through composition.
 
-    def get_filename(self, queryset):
-        return "data-export-{!s}.csv".format(timezone.now())
-```
+(the import statement shown below is outdated)
 
-`header` - *boolean* - Default: `True`  
-Whether to include the header in the CSV.
+![](http://i.imgur.com/rvTRPv1.png)
 
-`filename` - *string* - Default: Dasherized version of `verbose_name_plural` from `queryset.model`.  
-Override `get_filename(self, queryset)` if a dynamic filename is required.
+Such grids of characters can be rendered to the terminal in alternate screen mode
+(no history, like `Vim`, `top` etc.) by [FullscreenWindow](http://curtsies.readthedocs.org/en/latest/window.html#curtsies.window.FullscreenWindow) objects
+or normal history-preserving screen by [CursorAwareWindow](http://curtsies.readthedocs.org/en/latest/window.html#curtsies.window.CursorAwareWindow) objects.
+User keyboard input events like pressing the up arrow key are detected by an
+[Input](http://curtsies.readthedocs.org/en/latest/input.html) object.
 
-`specify_separator` - *boolean* - Default: `True`  
-Whether to include `sep=<sepaator>` as the first line of the CSV file. This is useful for generating Microsoft
-Excel friendly CSV.
+Examples
+--------
 
-`verbose_names` - *boolean* - Default: `True`  
-Whether to use capitalized verbose column names in the header of the CSV file. If `False`, field names are used
-instead.
+* [Tic-Tac-Toe](/examples/tictactoeexample.py)
 
-## CSV Writer Options
+![](http://i.imgur.com/AucB55B.png)
 
-Example:
-```python
-from csv_export.views import CSVExportView
+* [Avoid the X's game](/examples/gameexample.py)
 
-class DataExportView(CSVExportView):
-    model = Data
-    fields = "__all__"
+![](http://i.imgur.com/nv1RQd3.png)
 
-    def get_csv_writer_fmtparams(self):
-        fmtparams = super().get_csv_writer_fmtparams()
-        fmtparams["delimiter"] = "|"
-        return fmtparams
-```
+* [Bpython-curtsies uses curtsies](http://ballingt.com/2013/12/21/bpython-curtsies.html)
 
-Override `get_csv_writer_fmtparams(self)` and return a dictionary of csv write format parameters. Default format
-parameters are: dialect="excel" and quoting=csv.QUOTE_ALL. See all available options in the Python docs:
+[![](http://i.imgur.com/r7rZiBS.png)](http://www.youtube.com/watch?v=lwbpC4IJlyA)
 
-https://docs.python.org/3.9/library/csv.html#csv.writer
+* [More examples](/examples)
 
-## Django Admin Integration
+About
+-----
 
-Example:
-```python
-from django.contrib import admin
-from csv_export.views import CSVExportView
-
-@admin.register(Data)
-class DataAdmin(admin.ModelAdmin):
-    actions = ("export_data_csv",)
-
-    def export_data_csv(self, request, queryset):
-        view = CSVExportView(queryset=queryset, fields="__all__")
-        return view.get(request)
-
-    export_data_csv.short_description = "Export CSV for selected Data records"
-```
-
-## Contributions
-
-Pull requests are happily accepted.
-
-## Alternatives
-
-https://github.com/django-import-export/django-import-export/
-
-https://github.com/mjumbewu/django-rest-framework-csv
+* [Curtsies Documentation](http://curtsies.readthedocs.org/en/latest/)
+* Curtsies was written to for [bpython-curtsies](http://ballingt.com/2013/12/21/bpython-curtsies.html)
+* `#bpython` on irc is a good place to talk about Curtsies, but feel free
+  to open an issue if you're having a problem!
+* Thanks to the many contributors!
+* If all you need are colored strings, consider one of these [other
+  libraries](http://curtsies.readthedocs.io/en/latest/FmtStr.html#fmtstr-rationale)!
