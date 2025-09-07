@@ -1,47 +1,56 @@
-#!/usr/bin/env python
-import os, sys
-from setuptools import setup, find_packages
+"""
+Publish a new version:
 
-if sys.argv[-1] == 'publish':
-    os.system('python setup.py sdist upload')
-    sys.exit(0)
+$ git tag X.Y.Z -m "Release X.Y.Z"
+$ git push --tags
 
-with open('README.rst', 'r') as f:
-    long_description = f.read()
+$ pip install --upgrade twine wheel
+$ python setup.py sdist bdist_wheel --universal
+$ twine upload dist/*
+"""
+import codecs
+from setuptools import setup
 
-# Dynamically calculate the version based on swingtime.VERSION.
-version=__import__('swingtime').get_version()
+
+SCHEDULE_VERSION = '0.6.0'
+SCHEDULE_DOWNLOAD_URL = (
+    'https://github.com/dbader/schedule/tarball/' + SCHEDULE_VERSION
+)
+
+
+def read_file(filename):
+    """
+    Read a utf8 encoded text file and return its contents.
+    """
+    with codecs.open(filename, 'r', 'utf8') as f:
+        return f.read()
+
 
 setup(
-    name='django-swingtime',
-    url='https://github.com/dakrauth/django-swingtime',
-    author='David A Krauth',
-    author_email='dakrauth@gmail.com',
-    description='A Django calendaring application.',
-    version=version,
-    long_description=long_description,
-    long_description_content_type='text/x-rst',
-    platforms=['any'],
-    license='MIT License',
-    python_requires='>=3.6, <4',
-    install_requires=['Django>=2.2,<4.0', 'python-dateutil==2.8.0'],
+    name='schedule',
+    packages=['schedule'],
+    version=SCHEDULE_VERSION,
+    description='Job scheduling for humans.',
+    long_description=read_file('README.rst'),
+    license='MIT',
+    author='Daniel Bader',
+    author_email='mail@dbader.org',
+    url='https://github.com/dbader/schedule',
+    download_url=SCHEDULE_DOWNLOAD_URL,
+    keywords=[
+        'schedule', 'periodic', 'jobs', 'scheduling', 'clockwork',
+        'cron', 'scheduler', 'job scheduling'
+    ],
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Web Environment',
-        'Framework :: Django',
-        'Framework :: Django :: 2.2',
-        'Framework :: Django :: 3.0',
-        'Framework :: Django :: 3.1',
-        'Framework :: Django :: 3.2',
+        'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Topic :: Office/Business :: Scheduling',
+        'Natural Language :: English',
     ],
-    packages=find_packages(),
-    package_data={'swingtime': ['locale/*/*/*.*',]},
-    zip_safe=False,
+    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
 )

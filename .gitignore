@@ -1,16 +1,45 @@
-*.log
-*.pot
-*.pyc
-karate.db
-demo/static
-/build
-MANIFEST
+*.py[cod]
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
 dist
-.tox/
-django_swingtime.egg-info/
-/dev
-.cache/
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+MANIFEST
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
 .coverage
-.pytest_cache
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+env
+env3
+__pycache__
 venv
-Dockerrun.aws.json
+
+.cache
+docs/_build
+.idea/

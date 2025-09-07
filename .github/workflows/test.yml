@@ -1,4 +1,4 @@
-name: Python application
+name: Python package
 
 on:
   push:
@@ -10,10 +10,12 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: [3.8, 3.9, 3.10]
+        python-version:
+          - "3.8"
+          - "3.9"
 
     steps:
     - uses: actions/checkout@v2
@@ -22,6 +24,35 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      run: pip install tox
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox-travis coveralls sphinx
     - name: Run tests
       run: tox
+    - name: Build documentation
+      run: |
+        sphinx-build -b html docs/source docs/build || true
+    - name: Upload coverage to Coveralls
+      if: success()
+      run: coveralls
+  docs:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        python-version:
+          - "3.8"
+          - "3.9"
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install sphinx
+    - name: Build documentation
+      run: |
+        sphinx-build -b html docs/source docs/build
