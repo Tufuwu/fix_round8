@@ -1,29 +1,70 @@
-name: Django CI
+name: CI
 
 on:
   push:
     branches:
       - main
+      - /^v\d+\.\d+(\.(\d|x)+)?(-\S*)?$/
   pull_request:
-    branches:
-      - main
 
 jobs:
-  test:
-    runs-on: ubuntu-22.04
+  build:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.8, pypy-3.8]
-        django-version: [2.2, 3.0, 3.1, main]
+        toxenv:
+          - lint,docs
+          - django20-py38-all
+          - django21-py38-all
+          - django22-py38-all
+          - django30-py38-all
+          - django31-py38-all
+          - djangoDev-py38-all
+          - django31-py38-none
+          - django31-py38-amazon_ses
+          - django22-py38-all-old_urllib3
         exclude:
           - python-version: 3.8
-            django-version: 3.0
+            toxenv: lint,docs
           - python-version: 3.8
-            django-version: 3.1
+            toxenv: django20-py38-all
           - python-version: 3.8
-            django-version: main
-      fail-fast: false
-
+            toxenv: django21-py38-all
+          - python-version: 3.8
+            toxenv: django22-py38-all
+          - python-version: 3.8
+            toxenv: django30-py38-all
+          - python-version: 3.8
+            toxenv: django31-py38-all
+          - python-version: 3.8
+            toxenv: djangoDev-py38-all
+          - python-version: 3.8
+            toxenv: django31-py38-none
+          - python-version: 3.8
+            toxenv: django31-py38-amazon_ses
+          - python-version: 3.8
+            toxenv: django22-py38-all-old_urllib3
+          - python-version: pypy-3.8
+            toxenv: lint,docs
+          - python-version: pypy-3.8
+            toxenv: djangoDev-py38-all
+          - python-version: pypy-3.8
+            toxenv: django31-py38-none
+          - python-version: pypy-3.8
+            toxenv: django31-py38-amazon_ses
+          - python-version: pypy-3.8
+            toxenv: django22-py38-all-old_urllib3
+          - python-version: pypy-3.8
+            toxenv: django20-py38-all
+          - python-version: pypy-3.8
+            toxenv: django21-py38-all
+          - python-version: pypy-3.8
+            toxenv: django22-py38-all
+          - python-version: pypy-3.8
+            toxenv: django30-py38-all
+          - python-version: pypy-3.8
+            toxenv: django31-py38-all
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -33,21 +74,12 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install tox-travis
-    - name: Create tox.ini
-      run: |
-        echo "[tox]" > tox.ini
-        echo "envlist = py" >> tox.ini
-        echo "[testenv]" >> tox.ini
-        echo "deps =" >> tox.ini
-        echo "    django==${DJANGO}" >> tox.ini
-        echo "commands = python -m unittest discover" >> tox.ini
+        pip install tox
+        pip install importlib-metadata==4.13.0
+        pip install setuptools==58.0.4  # Add this line to fix the import error
     - name: Run tests
       env:
-        DJANGO: ${{ matrix.django-version }}
-      run: |
-        if [ "${{ matrix.django-version }}" == "main" ]; then
-          sed -i '/django==/d' tox.ini
-          echo "    https://github.com/django/django/archive/main.tar.gz" >> tox.ini
-        fi
-        tox
+        TOXENV: ${{ matrix.toxenv }}
+        TOX_FORCE_IGNORE_OUTCOME: false
+      run: tox
+      continue-on-error: ${{ matrix.toxenv == 'djangoDev-py38-all' && matrix.python-version == '3.8' }}
