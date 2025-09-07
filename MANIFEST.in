@@ -1,3 +1,4 @@
-include AUTHORS CHANGELOG.rst LICENSE README.rst
-recursive-include tests *.py
-recursive-include docs Makefile conf.py make.bat *.rst
+include CHANGELOG.md
+include LICENSE
+include README.md
+graft tests

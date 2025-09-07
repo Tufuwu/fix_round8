@@ -1,4 +1,4 @@
-name: Django Storages CI
+name: Python package
 
 on:
   push:
@@ -9,21 +9,22 @@ on:
       - main
 
 jobs:
-  test:
-    runs-on: ubuntu-22.04
+  build:
     strategy:
       matrix:
         python-version: [3.8, 3.9]
-        toxenv:
-          - flake8
-          - integration
-          - py38-django22
-          - py39-django22
-          - py38-django30
-          - py39-django30
-          - py38-django31
-          - py39-django31
-      fail-fast: false
+        env: [py38, py39, qa, doc]
+        include:
+          - python-version: 3.8
+            env: py38
+          - python-version: 3.9
+            env: py39
+          - python-version: 3.8
+            env: qa
+          - python-version: 3.8
+            env: doc
+
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -35,14 +36,20 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
+        python -m pip install --upgrade setuptools pip
         pip install tox
 
+    - name: Create setup.cfg with tox section
+      run: |
+        echo "[tox:tox]" > setup.cfg
+        echo "envlist = py38,py39,qa,doc" >> setup.cfg
+
     - name: Run tests
-      run: tox -e ${{ matrix.toxenv }}
-      continue-on-error: false
       env:
-        TOX_ALLOWLIST_EXTERNAL: docker
-        TOXENV: ${{ matrix.toxenv }}
-        DJANGO_SETTINGS_MODULE: your_project.settings  # Ensure this points to your Django settings module
-        STATIC_URL: '/static/'  # Add STATIC_URL to avoid the error
+        TOXENV: ${{ matrix.env }}
+      run: |
+        tox -e ${{ matrix.env }}
+
+    - name: Check Tox environments
+      run: |
+        tox --listenvs
