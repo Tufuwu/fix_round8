@@ -1,7 +1,2 @@
-include CHANGELOG.rst
-include CONTRIBUTING.md
-include LICENSE.txt
+include LICENSE
 include README.rst
-include .coveragerc .travis.yml pytest.ini tox.ini
-recursive-include docs *
-recursive-include src/josepy/testdata *

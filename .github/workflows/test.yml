@@ -1,4 +1,4 @@
-name: Python package
+name: Django Test
 
 on:
   push:
@@ -9,44 +9,42 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
+  test:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.8, 3.9]
-        include:
-          - python-version: 3.9
-            env: TOXENV=mypy
+        django-version: [2.0, 2.2, 3.1, 3.2]
+        exclude:
+          - python-version: 3.8
+            django-version: 2.0
+          - python-version: 3.8
+            django-version: 2.2
+          - python-version: 3.8
+            django-version: 3.1
+          - python-version: 3.8
+            django-version: 3.2
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Check out code
+      uses: actions/checkout@v2
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install tox-travis codecov
-    - name: Run tests
-      run: tox -v
-    - name: Upload coverage to Codecov
-      if: success()
-      uses: codecov/codecov-action@v2
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        pip install Django==${{ matrix.django-version }}
+        pip install six
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-  notify:
-    if: ${{ github.ref == 'refs/heads/main' }}
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Notify IRC
-      uses: peter-evans/irc-notify@v1
-      with:
-        server: chat.freenode.net
-        channel: '#certbot-devel'
-        secure: true
+    - name: Run tests
       env:
-        IRC_NOTIFY_ON: failure
-        IRC_NOTIFY_ON_CANCEL: never
-        IRC_NOTIFY_ON_SUCCESS: never
+        DJANGO_SETTINGS_MODULE: myproject.settings  # Ensure the correct settings module is set
+      run: |
+        python manage.py migrate  # Ensure the database is migrated before running tests
+        python manage.py test
+
