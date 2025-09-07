@@ -1,45 +1,34 @@
-#!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
-"""Packaging script."""
+from setuptools import find_packages, setup
 
-import os
-
-from setuptools import setup
-
-here = os.path.abspath(os.path.dirname(__file__))
-readme = open(os.path.join(here, "README.rst")).read()
+exec(open('etesync_dav/_version.py').read())
 
 setup(
-    name="circlify",
-    description="Circle packing algorithm for Python",
-    long_description=readme,
-    long_description_content_type="text/x-rst",
-    version="0.14.0",
-    author="Elmotec",
-    author_email="elmotec@gmx.com",
-    license="MIT",
-    keywords="circle packing enclosure hierarchy graph display visualization",
-    url="http://github.com/elmotec/circlify",
-    py_modules=["circlify"],
-    test_suite="tests",
-    setup_requires=[],
-    tests_require=[],
-    python_requires=">=3.5",
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "Operating System :: OS Independent",
-        "License :: OSI Approved :: MIT License",
-        "Natural Language :: English",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Topic :: Software Development",
-        "Topic :: Utilities",
-        "Topic :: Scientific/Engineering :: Visualization",
-        "Intended Audience :: Developers",
+    name='etesync-dav',
+    version=__version__,
+    author='Tom Hacohen',
+    author_email='tom@stosb.com',
+    url='https://github.com/etesync/etesync-dav',
+    description='A CalDAV and CardDAV frontend for EteSync',
+    keywords=['etesync', 'encryption', 'sync', 'pim', 'caldav', 'carddav'],
+    license='GPL-3.0-only',
+    long_description=open('DESCRIPTION.rst').read(),
+    packages=find_packages(),
+    scripts=[
+        'scripts/etesync-dav',
     ],
+    include_package_data=True,
+    python_requires='>=3',
+    install_requires=[
+        'appdirs>=1.4.3',
+        'etesync>=0.12.1',
+        'etebase>=0.30.0',
+        'msgpack>=1.0.0',
+        'Radicale>=3.0.3,<=3.1.0',
+        'Flask>=1.1.1',
+        'Flask-WTF>=0.14.2',
+        'requests[socks]>=2.21',
+        'pyobjc-framework-Cocoa>=7.0.0 ; sys_platform=="darwin"',
+    ]
 )
