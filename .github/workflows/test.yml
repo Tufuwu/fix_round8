@@ -1,4 +1,4 @@
-name: CI
+name: Python package
 
 on:
   push:
@@ -13,7 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [3.8, 3.9]
+        numpy-version: [1.15.4, 1.19.4]
+        include:
+          - python-version: 3.8
+            numpy-version: 1.15.4
+          - python-version: 3.9
+            numpy-version: 1.19.4
 
     steps:
     - uses: actions/checkout@v2
@@ -23,21 +29,12 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Make install_radare2.sh executable
-      run: chmod +x ./scripts/install_radare2.sh
-
-    - name: Install make
-      run: sudo apt-get update && sudo apt-get install -y make
-
     - name: Install dependencies
       run: |
-        ./scripts/install_radare2.sh
-        pip install -r python/requirements_ci.txt
-        cd python && python setup.py install
+        python -m pip install --upgrade pip
+        pip install setuptools wheel
+        pip install numpy==${{ matrix.numpy-version }} scipy matplotlib>=3 cython>=0.28
+        bash dev/build.sh || exit 1
 
     - name: Run tests
-      run: |
-        cd python/test && make tests
-      env:
-        PYTHONPATH: ${{ github.workspace }}/python
-        PATH: ${{ github.workspace }}/scripts:$PATH
+      run: bash dev/test.sh || exit 1
