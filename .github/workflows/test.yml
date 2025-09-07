@@ -10,35 +10,30 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.8, 3.9]
+        python-version: [3.8, 3.9, 3.10]
+        os: [ubuntu-latest]
+        arch: [amd64, ppc64le]
 
     steps:
-    - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
+    - name: Check out repository
+      uses: actions/checkout@v2
+
     - name: Install dependencies
-      run: pip install tox-travis
+      run: |
+        pip install coveralls pytest
+        python setup.py develop
+
     - name: Run tests
-      run: tox
+      run: coverage run --source=mwparserfromhell -m pytest
 
-  docs:
-    runs-on: ubuntu-22.04
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - name: Install dependencies
-      run: pip install tox-travis
-    - name: Install Sphinx and Jinja2
-      run: pip install sphinx jinja2==3.1.2
-    - name: Build documentation
-      run: tox -e docs
+    - name: Upload coverage to Coveralls
+      if: success()
+      run: coveralls
