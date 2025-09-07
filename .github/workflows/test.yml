@@ -1,4 +1,4 @@
-name: Python package
+name: Python application
 
 on:
   push:
@@ -10,61 +10,18 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9]
+        python-version: [3.8, 3.9, 3.10]
 
     steps:
     - uses: actions/checkout@v2
-
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-
-    - name: Cache pip
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/testing.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-
     - name: Install dependencies
-      run: |
-        pip install tox-travis
-        pip install coveralls
-        pip install -r requirements/testing.txt
-
-    - name: Lint with flake8
-      run: flake8
-
-    - name: Test with tox
+      run: pip install tox
+    - name: Run tests
       run: tox
-
-    - name: Coveralls
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: coveralls
-
-  notifications:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Send email notification
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.your-email-provider.com
-          server_port: 587
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
-          subject: GitHub Actions Notification
-          body: Build ${{ job.status }}
-          to: user@example.com
-          from: github-actions@example.com
-          secure: true
-          ignore_cert: true
-          retry: 3
-          retry_delay: 10
-          # Add fail-on-error to handle network issues gracefully
-          fail-on-error: false
