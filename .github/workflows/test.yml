@@ -1,4 +1,4 @@
-name: Python package
+name: CI
 
 on:
   push:
@@ -13,52 +13,39 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, pypy-3.8]
-        include:
-          - python-version: 3.8
-            dist: xenial
-          - python-version: 3.8
-            env: TOXENV=py38-cover,coverage
-          - python-version: 3.8
-            env: TOXENV=docs
-          - python-version: 3.8
-            env: TOXENV=py38-pyramid14
-          - python-version: 3.8
-            env: TOXENV=py38-pyramid19
+        python-version: [3.8, 3.9]
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip setuptools
-        pip install tox
-    - name: Cache pip
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        make
+        pip install poetry
+        poetry install
+
     - name: Run tests
-      run: tox
-      env:
-        TOXENV: ${{ matrix.env.TOXENV || '' }}
-    - name: Allow make command for docs
-      if: matrix.env.TOXENV == 'docs'
-      run: echo -e "[testenv:docs]\nallowlist_externals = make" >> tox.ini
-    - name: Install build dependencies
-      if: matrix.env.TOXENV == 'docs'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y make
-    - name: Install nh3 build dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential
-    - name: Allow make command for lint
-      if: matrix.env.TOXENV == 'lint'
-      run: echo -e "[testenv:lint]\nallowlist_externals = make" >> tox.ini
+      run: make tests
+
+    - name: Upload coverage to Codecov
+      if: success()
+      run: bash <(curl -s https://codecov.io/bash)
+
+    - name: Notify Gitter
+      if: success() || failure()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.GITTER_USERNAME }}
+        password: ${{ secrets.GITTER_PASSWORD }}
+        subject: GitHub Actions Notification
+        body: |
+          Build ${{ github.run_id }} of ${{ github.repository }} has completed.
+        to: webhook@gitter.im
+        from: ${{ secrets.GITTER_USERNAME }}
