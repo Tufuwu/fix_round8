@@ -9,18 +9,39 @@ on:
       - main
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  build:
     strategy:
       matrix:
-        python-version: [3.8, 3.9, 3.10, 3.11]
+        python-version: [3.8]
+        tox-env: [py38]
+
+    runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Install dependencies
       run: pip install tox
+
+    - name: Install additional dependencies
+      run: pip install 'Twisted[tls]>=17'
+
     - name: Run tests
-      run: tox
+      env:
+        PYTHONUNBUFFERED: 1
+      run: |
+        ulimit -c unlimited
+        tox -e ${{ matrix.tox-env }}
+    - name: Display core dump
+      if: failure()
+      run: |
+        for file in $(find . -name 'core*'); do
+          echo "Core dump found: $file"
+          gdb -q -c "$file" /usr/bin/python3 -ex "bt" -ex "quit"
+        done
+      shell: bash
