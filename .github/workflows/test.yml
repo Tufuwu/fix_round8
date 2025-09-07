@@ -1,4 +1,4 @@
-name: Python package
+name: CI
 
 on:
   push:
@@ -13,41 +13,65 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9, 'pypy-3.8']
-        with-opt-deps: [false, true]
-        exclude:
+        python-version: [3.8, 3.9]
+        include:
           - python-version: 3.8
-            with-opt-deps: false
+            geos-version: 3.8.2
+            numpy-version: 1.10.4
+          - python-version: 3.8
+            geos-version: 3.8.4
+            numpy-version: 1.13.3
+          - python-version: 3.8
+            geos-version: 3.8.3
+            numpy-version: 1.15.4
+          - python-version: 3.8
+            geos-version: 3.8.1
+            numpy-version: 1.17.5
+          - python-version: 3.9
+            geos-version: 3.8.1
+            numpy-version: 1.19.4
+          - python-version: 3.8
+            geos-version: main
       fail-fast: false
-
     steps:
-    - uses: actions/checkout@v3
-
+    - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-
+    - name: Cache pip
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Cache GEOS
+      uses: actions/cache@v3
+      with:
+        path: ${{ github.workspace }}/geosinstall
+        key: ${{ runner.os }}-geos-${{ matrix.geos-version }}
+        restore-keys: |
+          ${{ runner.os }}-geos-
+    - name: Install GEOS
+      run: |
+        chmod +x ./ci/install_geos.sh
+        export GEOS_INSTALL=${{ github.workspace }}/geosinstall/geos-${{ matrix.geos-version }}
+        export GEOS_VERSION=${{ matrix.geos-version }}
+        ./ci/install_geos.sh || exit 1
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt pytest
-        if [ "${{ matrix.with-opt-deps }}" = "true" ]; then
-          pip install feedparser cryptography
-        fi
-
-    - name: Install package
-      run: pip install .
-
-    - name: Run tests
-      run: pytest -v --tb=short
-
-    - name: Run irctest
-      if: ${{ matrix.with-opt-deps == 'true' && startsWith(matrix.python-version, '3.') }}
+        pip install --disable-pip-version-check --upgrade pip
+        pip install --upgrade wheel
+        if [ "${{ matrix.geos-version }}" = "main" ]; then
+          pip install --upgrade --pre Cython numpy pytest
+        else
+          pip install --upgrade Cython "numpy==${{ matrix.numpy-version }}" pytest
+    - name: Build and install
       run: |
-        git clone https://github.com/ProgVal/irctest.git
-        cd irctest
-        pytest --controllers irctest.controllers.limnoria
-
-    - name: Disable email notifications
-      if: always()
-      run: echo "Email notifications are disabled."
+        export LD_LIBRARY_PATH=${{ github.workspace }}/geosinstall/geos-${{ matrix.geos-version }}/lib
+        export PATH=${{ github.workspace }}/geosinstall/geos-${{ matrix.geos-version }}/bin:$PATH
+        python setup.py build_ext --inplace
+        pip install --no-deps -e .
+    - name: Run tests
+      run: pytest --doctest-modules
