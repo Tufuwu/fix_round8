@@ -1,6 +1,2 @@
-include LICENSE
-include AUTHORS
-include README.rst
-recursive-include import_export/templates *
-recursive-include import_export/locale *
-recursive-include import_export/static *
+include README.md
+include description.rst

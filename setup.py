@@ -1,57 +1,39 @@
-import os
+#!/usr/bin/env python3
 
-from setuptools import find_packages, setup
+import sys, os
+try:
+  from setuptools import setup
+except ImportError:
+  from distutils.core import setup
 
-VERSION = __import__("import_export").__version__
+if sys.version_info < (3,3):
+    sys.exit("Python 3.3+ is required; you are using %s" % sys.version)
 
-CLASSIFIERS = [
-    'Framework :: Django',
-    'Framework :: Django :: 2.2',
-    'Framework :: Django :: 3.1',
-    'Framework :: Django :: 3.2',
-    'Intended Audience :: Developers',
-    'License :: OSI Approved :: BSD License',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.6',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3 :: Only',
-    'Topic :: Software Development',
-]
+########################################
 
-install_requires = [
-    'diff-match-patch',
-    'Django>=2.2',
-    'tablib[html,ods,xls,xlsx,yaml]>=3.0.0',
-]
+version_py = os.path.join('vpn_slice', 'version.py')
 
+d = {}
+with open(version_py, 'r') as fh:
+    exec(fh.read(), d)
+    version_pep = d['__version__']
 
-with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
-    readme = f.read()
+########################################
 
-
-setup(
-    name="django-import-export",
-    description="Django application and library for importing and exporting"
-                " data with included admin integration.",
-    long_description=readme,
-    version=VERSION,
-    author="Informatika Mihelac",
-    author_email="bmihelac@mihelac.org",
-    license='BSD License',
-    platforms=['OS Independent'],
-    url="https://github.com/django-import-export/django-import-export",
-    project_urls={
-        "Documentation": "https://django-import-export.readthedocs.io/en/stable/",
-        "Changelog": "https://django-import-export.readthedocs.io/en/stable/changelog.html",
-    },
-    packages=find_packages(exclude=["tests"]),
-    include_package_data=True,
-    install_requires=install_requires,
-    python_requires=">=3.6",
-    classifiers=CLASSIFIERS,
-    zip_safe=False,
-)
+setup(name="vpn-slice",
+      version=version_pep,
+      description=("vpnc-script replacement for easy split-tunnel VPN setup"),
+      long_description=open('description.rst').read(),
+      author="Daniel Lenski",
+      author_email="dlenski@gmail.com",
+      extras_require={
+        "setproctitle": ["setproctitle"],
+        "dnspython": ["dnspython"],
+      },
+      install_requires=["setproctitle", "dnspython"],
+      license='GPL v3 or later',
+      url="https://github.com/dlenski/vpn-slice",
+      packages=["vpn_slice"],
+      include_package_data = True,
+      entry_points={ 'console_scripts': [ 'vpn-slice=vpn_slice.__main__:main' ] },
+      )
