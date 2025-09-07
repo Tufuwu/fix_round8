@@ -1,43 +1,51 @@
-import setuptools
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-with open("README.md", "r") as readme:
-    long_description = readme.read()
+from setuptools import setup
 
-setuptools.setup(
-    name="django-uniauth",
-    version="1.4.1",
-    author="Lance Goodridge",
-    author_email="ldgoodridge95@gmail.com",
-    keywords=["django", "auth", "authentication", "cas", "sso", "single sign-on"],
-    description="A Django app for managing CAS and custom user authentication.",
-    include_package_data=True,
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/lgoodridge/django-uniauth",
-    license='LGPLv3',
-    python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*",
-    install_requires=[
-        "Django>=1.11",
-        "python-cas>=1.4.0",
-        "djangorestframework-simplejwt>=4.1.0",
-    ],
-    extras_require = {
-        ":python_version<='3.2'": ["mock"],
-    },
-    packages=setuptools.find_packages(exclude=["demo-app",]),
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Framework :: Django",
-        "Framework :: Django :: 1.11",
-        "Framework :: Django :: 2",
-        "Framework :: Django :: 3",
-        "Framework :: Django :: 4",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
-        "Natural Language :: English",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 3",
-    ]
-)
+import feedgen.version
+
+packages = ['feedgen', 'feedgen/ext']
+
+setup(name='feedgen',
+      packages=packages,
+      version=feedgen.version.version_full_str,
+      description='Feed Generator (ATOM, RSS, Podcasts)',
+      author='Lars Kiesow',
+      author_email='lkiesow@uos.de',
+      url='https://lkiesow.github.io/python-feedgen',
+      keywords=['feed', 'ATOM', 'RSS', 'podcast'],
+      license='FreeBSD and LGPLv3+',
+      install_requires=['lxml', 'python-dateutil'],
+      classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: GNU Lesser General Public License v3 ' +
+        'or later (LGPLv3+)',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+        'Topic :: Communications',
+        'Topic :: Internet',
+        'Topic :: Text Processing',
+        'Topic :: Text Processing :: Markup',
+        'Topic :: Text Processing :: Markup :: XML'
+        ],
+      test_suite="tests",
+      long_description='''\
+Feedgenerator
+=============
+
+This module can be used to generate web feeds in both ATOM and RSS format. It
+has support for extensions. Included is for example an extension to produce
+Podcasts.
+
+It is licensed under the terms of both, the FreeBSD license and the LGPLv3+.
+Choose the one which is more convenient for you. For more details have a look
+at license.bsd and license.lgpl.
+''')
