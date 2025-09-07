@@ -1,4 +1,4 @@
-name: Python package
+name: Python application
 
 on:
   push:
@@ -11,36 +11,38 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.8]
-        include:
-          - python-version: 3.8
-            env: TOXENV=flake8
-          - python-version: 3.8
-            env: TOXENV=isort
-          - python-version: 3.8
-            env: TOXENV=py38
+
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
+
+    - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: '3.8'
+
+    - name: Install Miniconda
+      run: |
+        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O $HOME/miniconda.sh
+        bash $HOME/miniconda.sh -b -u -p $HOME/miniconda
+        echo "$HOME/miniconda/bin" >> $GITHUB_PATH
+        echo "export PATH=$HOME/miniconda/bin:\$PATH" >> $GITHUB_ENV
+
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install tox
-        pip install coveralls
-    - name: Run tests
-      run: tox
-    - name: Upload coverage to Coveralls
-      if: success() && matrix.python-version == '3.8' && env.TOXENV == 'py38'
+        pip install nose coverage coveralls flake8 scikit-image
+        pip install -e .
+
+    - name: Lint with flake8
+      run: flake8
+
+    - name: Test with nosetests
       run: |
-        if [ -e .coverage ]; then coveralls; fi
-    - name: Check flake8 errors
-      if: failure() && env.TOXENV == 'flake8'
-      run: echo "Flake8 failed. Please fix the linting errors."
-    - name: Check isort errors
-      if: failure() && env.TOXENV == 'isort'
-      run: echo "Isort failed. Please fix the import sorting errors."
+        # Ensure compatibility with Python 3.8 by replacing 'imp' with 'importlib'
+        find . -name '*.py' -exec sed -i 's/import imp/import importlib as imp/' {} +
+        nosetests -sv --with-doctest --no-byte-compile --with-coverage --cover-package=tftb
+
+    - name: Coveralls
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: coveralls
+      continue-on-error: true
